@@ -20,6 +20,14 @@ class PersonaForge {
             btn.addEventListener('click', (e) => this.switchTab(e.target.dataset.tab));
         });
 
+        // Persona management
+        document.getElementById('add-persona-btn').addEventListener('click', () => this.showAddPersonaModal());
+        document.getElementById('add-persona-form').addEventListener('submit', (e) => this.handleAddPersona(e));
+        document.getElementById('cancel-persona-btn').addEventListener('click', () => this.hideModal('add-persona-modal'));
+
+        // File upload
+        document.getElementById('file-upload').addEventListener('change', (e) => this.handleFileUpload(e));
+
         // Chat functionality
         document.getElementById('active-persona-select').addEventListener('change', (e) => this.selectPersona(e.target.value));
         document.getElementById('send-btn').addEventListener('click', () => this.sendMessage());
@@ -27,6 +35,18 @@ class PersonaForge {
             if (e.key === 'Enter') this.sendMessage();
         });
         document.getElementById('clear-chat-btn').addEventListener('click', () => this.clearChat());
+
+        // Modal controls
+        document.querySelectorAll('.modal-close').forEach(btn => {
+            btn.addEventListener('click', (e) => this.hideModal(e.target.closest('.modal').id));
+        });
+
+        // Click outside modal to close
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) this.hideModal(modal.id);
+            });
+        });
     }
 
     switchTab(tabName) {

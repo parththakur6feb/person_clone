@@ -137,9 +137,27 @@
                     </div>
                     
                     <div class="form-group">
+                        <label for="data-input-method">Data Input Method:</label>
+                        <select id="data-input-method" onchange="toggleDataInput()">
+                            <option value="text">Paste Text Data</option>
+                            <option value="file">Upload File(s)</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group" id="text-input-group">
                         <label for="chat-data">Chat Data:</label>
-                        <textarea id="chat-data" required placeholder="Paste chat logs, messages, or other text data here..."></textarea>
+                        <textarea id="chat-data" placeholder="Paste chat logs, messages, or other text data here..."></textarea>
                         <small class="form-help">Make sure you have explicit consent to use this data.</small>
+                    </div>
+                    
+                    <div class="form-group" id="file-input-group" style="display: none;">
+                        <label for="file-upload">Upload Files:</label>
+                        <input type="file" id="file-upload" multiple accept=".txt,.json,.csv,.zip,.log,.md,.docx,.pdf">
+                        <small class="form-help">
+                            Supported formats: TXT, JSON, CSV, ZIP, LOG, MD, DOCX, PDF<br>
+                            You can select multiple files or upload a ZIP containing chat exports.
+                        </small>
+                        <div id="file-preview" style="margin-top: 10px;"></div>
                     </div>
                     
                     <div class="form-group">
