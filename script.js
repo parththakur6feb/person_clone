@@ -417,37 +417,72 @@ class PersonaForge {
         // Generate persona response with error handling
         setTimeout(() => {
             try {
-                console.log('Generating response for:', message);
+                console.log('=== GENERATING RESPONSE ===');
+                console.log('User message:', message);
+                console.log('Active persona:', this.activePersona ? this.activePersona.name : 'None');
+                
+                if (!this.activePersona) {
+                    console.error('No active persona!');
+                    this.addMessage("Please select a persona first.", 'persona');
+                    return;
+                }
+                
                 const response = this.generatePersonaResponse(message);
                 console.log('Generated response:', response);
+                
+                if (!response) {
+                    console.error('Empty response generated!');
+                    this.addMessage("I'm not sure what to say to that.", 'persona');
+                    return;
+                }
+                
                 this.addMessage(response, 'persona');
+                console.log('=== RESPONSE SENT ===');
+                
             } catch (error) {
-                console.error('Error generating response:', error);
+                console.error('Error in sendMessage timeout:', error);
+                console.error('Error stack:', error.stack);
                 this.addMessage("Sorry, I'm having trouble responding right now. Can you try again?", 'persona');
             }
-        }, 500); // Much shorter delay for testing
+        }, 300); // Even shorter delay for testing
     }
 
     generatePersonaResponse(userMessage) {
         try {
+            console.log('--- generatePersonaResponse started ---');
+            
             const persona = this.activePersona;
+            console.log('Persona check:', persona ? 'Found' : 'Missing');
+            
             if (!persona || !persona.profile) {
+                console.log('No persona or profile found');
                 return "I'm not sure how to respond to that.";
             }
             
             const profile = persona.profile;
+            console.log('Profile:', profile);
             
             // Simple but effective response generation
+            console.log('Analyzing message context...');
             const messageContext = this.analyzeMessageContext(userMessage);
+            console.log('Message context:', messageContext);
+            
+            console.log('Getting base response...');
             let response = this.getBaseResponse(messageContext, profile);
+            console.log('Base response:', response);
             
             // Apply persona traits
+            console.log('Applying persona traits...');
             response = this.applyPersonaTraits(response, profile);
+            console.log('Final response:', response);
             
-            return response || "That's interesting! Tell me more.";
+            const finalResponse = response || "That's interesting! Tell me more.";
+            console.log('--- generatePersonaResponse completed ---');
+            return finalResponse;
             
         } catch (error) {
             console.error('Error in generatePersonaResponse:', error);
+            console.error('Error stack:', error.stack);
             return "I'm having trouble understanding. Can you rephrase that?";
         }
     }
