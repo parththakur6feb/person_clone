@@ -336,6 +336,229 @@ class PersonaForge {
 
         console.log('Demo personas loaded:', this.personas.size);
     }
+
+    // Modal functions
+    showAddPersonaModal() {
+        document.getElementById('add-persona-modal').classList.add('active');
+        document.getElementById('persona-name').focus();
+    }
+
+    hideModal(modalId) {
+        document.getElementById(modalId).classList.remove('active');
+    }
+
+    async handleAddPersona(e) {
+        e.preventDefault();
+        
+        const name = document.getElementById('persona-name').value.trim();
+        const description = document.getElementById('persona-description').value.trim();
+        const inputMethod = document.getElementById('data-input-method').value;
+        
+        let chatData = '';
+        
+        if (inputMethod === 'text') {
+            chatData = document.getElementById('chat-data').value.trim();
+        } else {
+            chatData = this.uploadedData || '';
+        }
+        
+        const hasConsent = document.getElementById('consent-checkbox').checked;
+
+        if (!hasConsent) {
+            alert('You must confirm consent to use the data.');
+            return;
+        }
+
+        if (!name || !chatData) {
+            alert('Name and chat data are required.');
+            return;
+        }
+
+        // Show loading state
+        const submitBtn = e.target.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = 'Creating...';
+        submitBtn.disabled = true;
+
+        try {
+            const persona = {
+                id: Date.now().toString(),
+                name,
+                description,
+                profile: {
+                    tone: 'positive',
+                    formality: 'neutral'
+                },
+                createdAt: new Date().toISOString()
+            };
+
+            this.personas.set(persona.id, persona);
+            this.updateUI();
+            this.hideModal('add-persona-modal');
+            alert(`Persona "${name}" created successfully!`);
+            
+            // Reset form
+            e.target.reset();
+            this.uploadedData = '';
+            document.getElementById('file-preview').innerHTML = '';
+            
+        } catch (error) {
+            console.error('Error creating persona:', error);
+            alert('Error creating persona: ' + error.message);
+        } finally {
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        }
+    }
+
+    async handleFileUpload(e) {
+        const files = Array.from(e.target.files);
+        const preview = document.getElementById('file-preview');
+        
+        if (files.length === 0) return;
+
+        preview.innerHTML = '<div style="color: #666;">Processing files...</div>';
+        
+        let allData = '';
+        
+        try {
+            for (const file of files) {
+                console.log('Processing file:', file.name, file.type);
+                
+                if (file.name.endsWith('.zip')) {
+                    const zipData = await this.extractZipFile(file);
+                    allData += zipData + '\n\n';
+                } else if (file.type.startsWith('text/') || file.name.endsWith('.txt') || file.name.endsWith('.log') || file.name.endsWith('.md')) {
+                    const textData = await this.readTextFile(file);
+                    allData += textData + '\n\n';
+                } else if (file.name.endsWith('.json')) {
+                    const jsonData = await this.readJsonFile(file);
+                    allData += jsonData + '\n\n';
+                } else if (file.name.endsWith('.csv')) {
+                    const csvData = await this.readCsvFile(file);
+                    allData += csvData + '\n\n';
+                } else {
+                    console.warn('Unsupported file type:', file.name);
+                }
+            }
+            
+            this.uploadedData = allData;
+            
+            preview.innerHTML = `
+                <div style="background: #e8f5e8; padding: 10px; border-radius: 5px; border: 1px solid #4caf50;">
+                    <strong>✅ Files processed successfully!</strong><br>
+                    <small>Extracted ${allData.length} characters of chat data from ${files.length} file(s)</small>
+                </div>
+            `;
+            
+        } catch (error) {
+            console.error('Error processing files:', error);
+            preview.innerHTML = `
+                <div style="background: #fee; padding: 10px; border-radius: 5px; border: 1px solid #f44336;">
+                    <strong>❌ Error processing files:</strong><br>
+                    <small>${error.message}</small>
+                </div>
+            `;
+        }
+    }
+
+    async readTextFile(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = (e) => resolve(e.target.result);
+            reader.onerror = (e) => reject(new Error('Failed to read text file'));
+            reader.readAsText(file);
+        });
+    }
+
+    async readJsonFile(file) {
+        const text = await this.readTextFile(file);
+        try {
+            const json = JSON.parse(text);
+            // Convert JSON to readable text format
+            if (Array.isArray(json)) {
+                return json.map(item => {
+                    if (typeof item === 'object') {
+                        return Object.values(item).join(' ');
+                    }
+                    return String(item);
+                }).join('\n');
+            } else if (typeof json === 'object') {
+                return Object.values(json).join('\n');
+            }
+            return text;
+        } catch (error) {
+            return text; // Return as plain text if JSON parsing fails
+        }
+    }
+
+    async readCsvFile(file) {
+        const text = await this.readTextFile(file);
+        // Simple CSV parsing - convert to readable format
+        const lines = text.split('\n');
+        return lines.map(line => {
+            const cells = line.split(',');
+            return cells.join(' ');
+        }).join('\n');
+    }
+
+    async extractZipFile(file) {
+        try {
+            const zip = new JSZip();
+            const zipContent = await zip.loadAsync(file);
+            let allText = '';
+            
+            for (const filename in zipContent.files) {
+                const zipFile = zipContent.files[filename];
+                
+                if (!zipFile.dir) {
+                    // Check if it's a text-based file
+                    if (filename.endsWith('.txt') || 
+                        filename.endsWith('.log') || 
+                        filename.endsWith('.md') ||
+                        filename.endsWith('.json') ||
+                        filename.endsWith('.csv') ||
+                        filename.includes('chat') ||
+                        filename.includes('message') ||
+                        filename.includes('conversation')) {
+                        
+                        try {
+                            const content = await zipFile.async('text');
+                            allText += `\n--- ${filename} ---\n${content}\n`;
+                        } catch (error) {
+                            console.warn(`Could not read file ${filename}:`, error);
+                        }
+                    }
+                }
+            }
+            
+            if (!allText) {
+                throw new Error('No readable text files found in ZIP archive.');
+            }
+            
+            return allText;
+            
+        } catch (error) {
+            throw new Error(`Failed to extract ZIP file: ${error.message}`);
+        }
+    }
+}
+
+// Global function for HTML onclick
+function toggleDataInput() {
+    const method = document.getElementById('data-input-method').value;
+    const textGroup = document.getElementById('text-input-group');
+    const fileGroup = document.getElementById('file-input-group');
+    
+    if (method === 'file') {
+        textGroup.style.display = 'none';
+        fileGroup.style.display = 'block';
+        document.getElementById('chat-data').removeAttribute('required');
+    } else {
+        textGroup.style.display = 'block';
+        fileGroup.style.display = 'none';
+        document.getElementById('chat-data').setAttribute('required', '');
+    }
 }
 
 // Initialize the application
