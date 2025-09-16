@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PersonaForge - Digital Persona Creator</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <h1><i class="fas fa-user-circle"></i> PersonaForge</h1>
+                <p>Create and manage digital personas from chat data</p>
+            </div>
+        </header>
+
+        <!-- Main Navigation -->
+        <nav class="main-nav">
+            <button class="nav-btn active" data-tab="personas">
+                <i class="fas fa-users"></i> Personas
+            </button>
+            <button class="nav-btn" data-tab="chat">
+                <i class="fas fa-comments"></i> Chat
+            </button>
+            <button class="nav-btn" data-tab="settings">
+                <i class="fas fa-cog"></i> Settings
+            </button>
+        </nav>
+
+        <!-- Personas Tab -->
+        <div id="personas-tab" class="tab-content active">
+            <div class="personas-container">
+                <div class="personas-header">
+                    <h2>Manage Personas</h2>
+                    <button class="btn btn-primary" id="add-persona-btn">
+                        <i class="fas fa-plus"></i> Add New Persona
+                    </button>
+                </div>
+                
+                <div class="personas-grid" id="personas-grid">
+                    <!-- Personas will be dynamically loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Tab -->
+        <div id="chat-tab" class="tab-content">
+            <div class="chat-container">
+                <div class="chat-header">
+                    <select id="active-persona-select" class="persona-select">
+                        <option value="">Select a persona to chat with...</option>
+                    </select>
+                    <div class="chat-controls">
+                        <button class="btn btn-secondary" id="clear-chat-btn">
+                            <i class="fas fa-trash"></i> Clear Chat
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="chat-messages" id="chat-messages">
+                    <div class="welcome-message">
+                        <i class="fas fa-robot"></i>
+                        <p>Select a persona from the dropdown above to start chatting!</p>
+                    </div>
+                </div>
+                
+                <div class="chat-input-container">
+                    <div class="input-group">
+                        <input type="text" id="chat-input" placeholder="Type your message..." disabled>
+                        <button class="btn btn-primary" id="send-btn" disabled>
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div id="settings-tab" class="tab-content">
+            <div class="settings-container">
+                <h2>Settings</h2>
+                
+                <div class="settings-section">
+                    <h3>Safety & Privacy</h3>
+                    <div class="setting-item">
+                        <label for="safety-level">Safety Strictness:</label>
+                        <select id="safety-level">
+                            <option value="high">High - Maximum safety</option>
+                            <option value="medium" selected>Medium - Balanced</option>
+                            <option value="low">Low - More creative</option>
+                        </select>
+                    </div>
+                    
+                    <div class="setting-item">
+                        <label for="faithfulness-level">Faithfulness:</label>
+                        <select id="faithfulness-level">
+                            <option value="high" selected>High - Stay close to original style</option>
+                            <option value="medium">Medium - Balanced creativity</option>
+                            <option value="low">Low - More creative interpretation</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>Data Management</h3>
+                    <div class="setting-item">
+                        <button class="btn btn-danger" id="delete-all-data-btn">
+                            <i class="fas fa-exclamation-triangle"></i> Delete All Data
+                        </button>
+                        <p class="setting-description">This will permanently delete all personas and chat data.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Persona Modal -->
+    <div id="add-persona-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New Persona</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="add-persona-form">
+                    <div class="form-group">
+                        <label for="persona-name">Persona Name:</label>
+                        <input type="text" id="persona-name" required placeholder="e.g., Alex, Sarah, etc.">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="persona-description">Description:</label>
+                        <textarea id="persona-description" placeholder="Brief description of this persona..."></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="chat-data">Chat Data:</label>
+                        <textarea id="chat-data" required placeholder="Paste chat logs, messages, or other text data here..."></textarea>
+                        <small class="form-help">Make sure you have explicit consent to use this data.</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="consent-checkbox" required>
+                            I confirm I have explicit consent to use this data for persona creation
+                        </label>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="cancel-persona-btn">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Create Persona</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Persona Details Modal -->
+    <div id="persona-details-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="persona-details-title">Persona Details</h3>
+                <button class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="persona-details-content">
+                    <!-- Persona details will be loaded here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+
