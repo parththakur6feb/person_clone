@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # PersonaForge - Digital Persona Creator
 
 PersonaForge is a web application that creates and manages digital personas from chat logs and message data. It analyzes conversational patterns, tone, and style to build faithful representations of people's communication habits.
@@ -126,3 +127,7 @@ Potential improvements could include:
 
 This tool is designed for educational and entertainment purposes. Users are responsible for ensuring they have proper consent for any data they process. The creators are not responsible for misuse of this application.
 
+=======
+# person_clone
+Person Clone is an AI app that, with consent, analyzes long-term chats to build a digital persona reflecting someone’s tone, style, and habits. It asks clarifying questions when context is missing, ensures privacy with encryption and deletion, and blocks misuse, offering safe and authentic emulation.
+>>>>>>> 102d3d642769891073fff70334d1fa21157df91b
