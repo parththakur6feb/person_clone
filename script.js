@@ -417,71 +417,101 @@ class PersonaForge {
         // Generate persona response with error handling
         setTimeout(() => {
             try {
+                console.log('Generating response for:', message);
                 const response = this.generatePersonaResponse(message);
+                console.log('Generated response:', response);
                 this.addMessage(response, 'persona');
             } catch (error) {
                 console.error('Error generating response:', error);
                 this.addMessage("Sorry, I'm having trouble responding right now. Can you try again?", 'persona');
             }
-        }, 800 + Math.random() * 1200); // Shorter thinking time
+        }, 500); // Much shorter delay for testing
     }
 
     generatePersonaResponse(userMessage) {
-        const persona = this.activePersona;
-        const profile = persona.profile;
-        
-        // Simple but effective response generation
-        const messageContext = this.analyzeMessageContext(userMessage);
-        let response = this.getBaseResponse(messageContext, profile);
-        
-        // Apply persona traits
-        response = this.applyPersonaTraits(response, profile);
-        
-        return response;
+        try {
+            const persona = this.activePersona;
+            if (!persona || !persona.profile) {
+                return "I'm not sure how to respond to that.";
+            }
+            
+            const profile = persona.profile;
+            
+            // Simple but effective response generation
+            const messageContext = this.analyzeMessageContext(userMessage);
+            let response = this.getBaseResponse(messageContext, profile);
+            
+            // Apply persona traits
+            response = this.applyPersonaTraits(response, profile);
+            
+            return response || "That's interesting! Tell me more.";
+            
+        } catch (error) {
+            console.error('Error in generatePersonaResponse:', error);
+            return "I'm having trouble understanding. Can you rephrase that?";
+        }
     }
 
     analyzeMessageContext(userMessage) {
-        const message = userMessage.toLowerCase();
-        
-        return {
-            isQuestion: message.includes('?'),
-            isGreeting: /^(hi|hello|hey|good morning|good afternoon|good evening)/.test(message),
-            isGoodbye: /^(bye|goodbye|see you|talk to you later)/.test(message),
-            isPositive: ['great', 'awesome', 'amazing', 'love', 'happy', 'excited'].some(word => message.includes(word)),
-            isNegative: ['bad', 'terrible', 'hate', 'angry', 'sad', 'awful'].some(word => message.includes(word)),
-            topics: this.detectTopics(message)
-        };
+        try {
+            const message = userMessage.toLowerCase();
+            
+            return {
+                isQuestion: message.includes('?'),
+                isGreeting: /^(hi|hello|hey|good morning|good afternoon|good evening)/.test(message),
+                isGoodbye: /^(bye|goodbye|see you|talk to you later)/.test(message),
+                isPositive: ['great', 'awesome', 'amazing', 'love', 'happy', 'excited'].some(word => message.includes(word)),
+                isNegative: ['bad', 'terrible', 'hate', 'angry', 'sad', 'awful'].some(word => message.includes(word)),
+                topics: this.detectTopics(message)
+            };
+        } catch (error) {
+            console.error('Error in analyzeMessageContext:', error);
+            return {
+                isQuestion: false,
+                isGreeting: false,
+                isGoodbye: false,
+                isPositive: false,
+                isNegative: false,
+                topics: []
+            };
+        }
     }
 
     detectTopics(message) {
-        const topics = [];
-        const topicKeywords = {
-            technology: ['tech', 'computer', 'phone', 'app', 'software', 'internet', 'coding', 'ai'],
-            entertainment: ['movie', 'music', 'game', 'book', 'show', 'fun', 'play'],
-            work: ['work', 'job', 'career', 'office', 'meeting', 'project'],
-            personal: ['family', 'friend', 'relationship', 'personal']
-        };
-        
-        Object.entries(topicKeywords).forEach(([topic, keywords]) => {
-            if (keywords.some(keyword => message.includes(keyword))) {
-                topics.push(topic);
-            }
-        });
-        
-        return topics;
+        try {
+            const topics = [];
+            const topicKeywords = {
+                technology: ['tech', 'computer', 'phone', 'app', 'software', 'internet', 'coding', 'ai'],
+                entertainment: ['movie', 'music', 'game', 'book', 'show', 'fun', 'play'],
+                work: ['work', 'job', 'career', 'office', 'meeting', 'project'],
+                personal: ['family', 'friend', 'relationship', 'personal']
+            };
+            
+            Object.entries(topicKeywords).forEach(([topic, keywords]) => {
+                if (keywords.some(keyword => message.includes(keyword))) {
+                    topics.push(topic);
+                }
+            });
+            
+            return topics;
+        } catch (error) {
+            console.error('Error in detectTopics:', error);
+            return [];
+        }
     }
 
     getBaseResponse(context, profile) {
-        // Handle greetings
-        if (context.isGreeting) {
-            const greetings = {
-                positive: ["Hey there! Great to hear from you!", "Hi! I'm so excited to chat!", "Hello! This is awesome!"],
-                neutral: ["Hello! How are you doing?", "Hi there! What's on your mind?", "Hey! Good to see you."],
-                negative: ["Hi... I'm here if you need to talk.", "Hello. What's going on?", "Hey. Everything okay?"]
-            };
-            const responses = greetings[profile.tone] || greetings.neutral;
-            return responses[Math.floor(Math.random() * responses.length)];
-        }
+        try {
+            // Handle greetings
+            if (context.isGreeting) {
+                const greetings = {
+                    positive: ["Hey there! Great to hear from you!", "Hi! I'm so excited to chat!", "Hello! This is awesome!"],
+                    neutral: ["Hello! How are you doing?", "Hi there! What's on your mind?", "Hey! Good to see you."],
+                    negative: ["Hi... I'm here if you need to talk.", "Hello. What's going on?", "Hey. Everything okay?"]
+                };
+                const responses = greetings[profile.tone] || greetings.neutral;
+                return responses[Math.floor(Math.random() * responses.length)];
+            }
         
         // Handle goodbyes
         if (context.isGoodbye) {
@@ -541,55 +571,68 @@ class PersonaForge {
             return negative[Math.floor(Math.random() * negative.length)];
         }
         
-        // Default responses
-        const defaults = [
-            "That's really interesting! Tell me more about that.",
-            "I'd love to hear more about your thoughts on this.",
-            "That's fascinating! What's your take on it?",
-            "I'm curious about that. How do you feel about it?",
-            "That's cool! What made you think of that?"
-        ];
-        return defaults[Math.floor(Math.random() * defaults.length)];
+            // Default responses
+            const defaults = [
+                "That's really interesting! Tell me more about that.",
+                "I'd love to hear more about your thoughts on this.",
+                "That's fascinating! What's your take on it?",
+                "I'm curious about that. How do you feel about it?",
+                "That's cool! What made you think of that?"
+            ];
+            return defaults[Math.floor(Math.random() * defaults.length)];
+            
+        } catch (error) {
+            console.error('Error in getBaseResponse:', error);
+            return "That's interesting! Tell me more.";
+        }
     }
 
     applyPersonaTraits(response, profile) {
-        // Apply formality
-        if (profile.formality === 'formal') {
-            response = response.replace(/I'm/g, 'I am')
-                              .replace(/don't/g, 'do not')
-                              .replace(/can't/g, 'cannot');
-        } else if (profile.formality === 'informal') {
-            response = response.replace(/I am/g, "I'm")
-                              .replace(/do not/g, "don't")
-                              .replace(/cannot/g, "can't");
-        }
-        
-        // Add exclamations for high excitement
-        if (profile.responsePatterns && profile.responsePatterns.exclamationFrequency > 0.3) {
-            if (!response.includes('!') && Math.random() < 0.5) {
-                response = response.replace(/\.$/, '!');
+        try {
+            if (!response || !profile) return response || "I'm not sure what to say.";
+            
+            // Apply formality
+            if (profile.formality === 'formal') {
+                response = response.replace(/I'm/g, 'I am')
+                                  .replace(/don't/g, 'do not')
+                                  .replace(/can't/g, 'cannot');
+            } else if (profile.formality === 'informal') {
+                response = response.replace(/I am/g, "I'm")
+                                  .replace(/do not/g, "don't")
+                                  .replace(/cannot/g, "can't");
             }
-        }
-        
-        // Add emojis if persona uses them
-        if (profile.emojiUsage && profile.emojiUsage.frequency > 0.1) {
-            const emojis = profile.emojiUsage.common;
-            if (emojis.length > 0 && Math.random() < 0.4) {
-                response += ' ' + emojis[Math.floor(Math.random() * emojis.length)];
+            
+            // Add exclamations for high excitement
+            if (profile.responsePatterns && profile.responsePatterns.exclamationFrequency > 0.3) {
+                if (!response.includes('!') && Math.random() < 0.5) {
+                    response = response.replace(/\.$/, '!');
+                }
             }
-        }
-        
-        // Add common phrases occasionally
-        if (profile.commonPhrases && profile.commonPhrases.length > 0 && Math.random() < 0.3) {
-            const phrase = profile.commonPhrases[Math.floor(Math.random() * profile.commonPhrases.length)];
-            if (Math.random() < 0.5) {
-                response = phrase + ', ' + response.toLowerCase();
-            } else {
-                response = response + ' ' + phrase + '!';
+            
+            // Add emojis if persona uses them
+            if (profile.emojiUsage && profile.emojiUsage.frequency > 0.1) {
+                const emojis = profile.emojiUsage.common;
+                if (emojis && emojis.length > 0 && Math.random() < 0.4) {
+                    response += ' ' + emojis[Math.floor(Math.random() * emojis.length)];
+                }
             }
+            
+            // Add common phrases occasionally
+            if (profile.commonPhrases && profile.commonPhrases.length > 0 && Math.random() < 0.3) {
+                const phrase = profile.commonPhrases[Math.floor(Math.random() * profile.commonPhrases.length)];
+                if (Math.random() < 0.5) {
+                    response = phrase + ', ' + response.toLowerCase();
+                } else {
+                    response = response + ' ' + phrase + '!';
+                }
+            }
+            
+            return response;
+            
+        } catch (error) {
+            console.error('Error in applyPersonaTraits:', error);
+            return response || "I'm not sure what to say.";
         }
-        
-        return response;
     }
 
     addMessage(content, sender) {
