@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>PersonaForge Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-result { padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .chat-test { border: 1px solid #ccc; padding: 15px; margin: 10px 0; }
+        button { padding: 10px 15px; margin: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>PersonaForge Debug Test</h1>
+    
+    <div class="chat-test">
+        <h3>Quick Chat Test</h3>
+        <input type="text" id="test-input" placeholder="Type a test message..." style="width: 300px; padding: 5px;">
+        <button onclick="testResponse()">Test Response</button>
+        <div id="test-output" style="margin-top: 10px; padding: 10px; background: #f8f9fa;"></div>
+    </div>
+    
+    <div id="test-results"></div>
+
+    <script src="script.js"></script>
+    <script>
+        // Wait for PersonaForge to initialize
+        setTimeout(() => {
+            runTests();
+        }, 1000);
+
+        function runTests() {
+            const results = document.getElementById('test-results');
+            
+            // Test 1: Check if PersonaForge is initialized
+            try {
+                if (typeof personaForge !== 'undefined' && personaForge.personas.size > 0) {
+                    results.innerHTML += '<div class="test-result success">✅ PersonaForge initialized successfully</div>';
+                } else {
+                    results.innerHTML += '<div class="test-result error">❌ PersonaForge not initialized</div>';
+                }
+            } catch (error) {
+                results.innerHTML += '<div class="test-result error">❌ PersonaForge initialization error: ' + error.message + '</div>';
+            }
+
+            // Test 2: Check if demo personas exist
+            try {
+                const alexPersona = personaForge.personas.get('demo-alex');
+                const sarahPersona = personaForge.personas.get('demo-sarah');
+                
+                if (alexPersona && sarahPersona) {
+                    results.innerHTML += '<div class="test-result success">✅ Demo personas loaded</div>';
+                } else {
+                    results.innerHTML += '<div class="test-result error">❌ Demo personas missing</div>';
+                }
+            } catch (error) {
+                results.innerHTML += '<div class="test-result error">❌ Demo personas error: ' + error.message + '</div>';
+            }
+
+            // Test 3: Test response generation
+            try {
+                personaForge.activePersona = personaForge.personas.get('demo-alex');
+                const response = personaForge.generatePersonaResponse('Hey how are you?');
+                
+                if (response && response.length > 0) {
+                    results.innerHTML += '<div class="test-result success">✅ Response generation working: "' + response + '"</div>';
+                } else {
+                    results.innerHTML += '<div class="test-result error">❌ Response generation failed</div>';
+                }
+            } catch (error) {
+                results.innerHTML += '<div class="test-result error">❌ Response generation error: ' + error.message + '</div>';
+            }
+        }
+
+        function testResponse() {
+            const input = document.getElementById('test-input');
+            const output = document.getElementById('test-output');
+            const message = input.value.trim();
+            
+            if (!message) {
+                output.innerHTML = 'Please enter a test message';
+                return;
+            }
+
+            try {
+                // Set Alex as active persona
+                personaForge.activePersona = personaForge.personas.get('demo-alex');
+                const response = personaForge.generatePersonaResponse(message);
+                
+                output.innerHTML = `
+                    <strong>You:</strong> ${message}<br>
+                    <strong>Alex:</strong> ${response}
+                `;
+                
+                input.value = '';
+            } catch (error) {
+                output.innerHTML = `<span style="color: red;">Error: ${error.message}</span>`;
+            }
+        }
+
+        // Allow Enter key to test response
+        document.getElementById('test-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                testResponse();
+            }
+        });
+    </script>
+</body>
+</html>
